@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools >= 64.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "config"
+version = "0.0.1"
+authors = [
+  { name="Rajakumaran Arivumani", email="author@example.com" },
+]
+description = "Configuration package"
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+#license = "MIT"
+#license-files = ["LICEN[CS]E*"]
+dependencies = [
+  # standard py app specific
+  "confuse",
+]
+keywords = ["data", "configuration", "etl", "elt", "framework", "config"]
+
+[project.optional-dependencies]
+test = [
+  # standard dev tools
+  "pytest",
+  "pytest-cov",
+  "pylint",
+  "black",
+  "ipython",
+]
+
+[project.scripts]
+
+[project.urls]
+Homepage = "https://profile.rajakumaran.in"
+Documentation = "https://readthedocs.org"
+Repository = "https://github.com/dexplorer/df-data-config.git"
+Issues = "https://github.com/dexplorer/df-data-config/issues"
+Changelog = "https://github.com/dexplorer/df-data-config/blob/master/CHANGELOG.md"
