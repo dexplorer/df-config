@@ -40,15 +40,22 @@ class ConfigParms:
         cls.log_file_path = f"{cls.resolve_app_path(cfg['APP_LOG_DIR'])}"
         cls.data_in_file_path = f"{cls.resolve_app_path(cfg['APP_DATA_IN_DIR'])}"
         cls.data_out_file_path = f"{cls.resolve_app_path(cfg['APP_DATA_OUT_DIR'])}"
-        cls.sql_script_file_path = (
-            f"{cls.resolve_app_path(cfg['APP_SQL_SCRIPT_DIR'])}"
-        )
+        cls.sql_script_file_path = f"{cls.resolve_app_path(cfg['APP_SQL_SCRIPT_DIR'])}"
         cls.img_out_file_path = f"{cls.resolve_app_path(cfg['APP_IMG_OUT_DIR'])}"
         cls.hive_warehouse_path = f"{cls.resolve_app_path(cfg['HIVE_WAREHOUSE_DIR'])}"
 
-    @staticmethod
-    def resolve_app_path(rel_path):
-        resolved_app_path = rel_path.replace(
-            "APP_ROOT_DIR", APP_ROOT_DIR
+    @classmethod
+    def resolve_app_path(cls, rel_path):
+        cfg = cls.config["CONFIG"].get()
+        logging.info(cfg)
+
+        resolved_app_path = (
+            rel_path.replace("APP_CONFIG_DIR", cfg["APP_CONFIG_DIR"])
+            .replace("APP_LOG_DIR", cfg["APP_LOG_DIR"])
+            .replace("APP_DATA_IN_DIR", cfg["APP_DATA_IN_DIR"])
+            .replace("APP_DATA_OUT_DIR", cfg["APP_DATA_OUT_DIR"])
+            .replace("APP_SQL_SCRIPT_DIR", cfg["APP_SQL_SCRIPT_DIR"])
+            .replace("APP_IMG_OUT_DIR", cfg["APP_IMG_OUT_DIR"])
+            .replace("APP_ROOT_DIR", APP_ROOT_DIR)
         )
         return resolved_app_path
