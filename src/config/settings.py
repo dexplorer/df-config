@@ -3,9 +3,13 @@ from dotenv import load_dotenv
 import os
 import logging
 
-# APP_ROOT_DIR = "/workspaces/df-config"
+APP_ROOT_DIR = "/workspaces/df-config"
+
+# Load the environment variables from .env file
+# load_dotenv()
+# logging.info(os.environ)
 # Fail if APP_ROOT_DIR env variable is not set
-APP_ROOT_DIR = os.environ["APP_ROOT_DIR"]
+# APP_ROOT_DIR = os.environ["APP_ROOT_DIR"]
 
 
 class ConfigParms:
@@ -23,8 +27,8 @@ class ConfigParms:
     @classmethod
     def load_config(cls, env: str):
         # Load the environment variables from .env file
-        load_dotenv()
-        logging.info(os.environ)
+        # load_dotenv()
+        # logging.info(os.environ)
 
         try:
             if env == "prod":
