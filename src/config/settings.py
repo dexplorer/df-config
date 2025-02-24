@@ -1,8 +1,11 @@
 import confuse
-
+from dotenv import load_dotenv
+import os
 import logging
 
-APP_ROOT_DIR = "/workspaces/df-config"
+# APP_ROOT_DIR = "/workspaces/df-config"
+# Fail if APP_ROOT_DIR env variable is not set
+APP_ROOT_DIR = os.environ['APP_ROOT_DIR']
 
 
 class ConfigParms:
@@ -14,10 +17,15 @@ class ConfigParms:
     data_in_file_path = ""
     data_out_file_path = ""
     sql_script_file_path = ""
+    img_out_file_path = ""
     hive_warehouse_path = ""
 
     @classmethod
     def load_config(cls, env: str):
+        # Load the environment variables from .env file
+        load_dotenv()
+        logging.info(os.environ)
+
         try:
             if env == "prod":
                 cls.config.set_file(f"{APP_ROOT_DIR}/cfg/config.yaml")

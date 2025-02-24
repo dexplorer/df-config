@@ -20,6 +20,8 @@ classifiers = [
 dependencies = [
   # standard py app specific
   "confuse",
+  "python-dotenv",
+
 ]
 keywords = ["data", "configuration", "etl", "elt", "framework", "config"]
 
