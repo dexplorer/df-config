@@ -5,7 +5,7 @@ import logging
 
 # APP_ROOT_DIR = "/workspaces/df-config"
 # Fail if APP_ROOT_DIR env variable is not set
-APP_ROOT_DIR = os.environ['APP_ROOT_DIR']
+APP_ROOT_DIR = os.environ["APP_ROOT_DIR"]
 
 
 class ConfigParms:
