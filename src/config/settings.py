@@ -1,5 +1,4 @@
 import confuse
-import os
 import logging
 
 class ConfigParms:
