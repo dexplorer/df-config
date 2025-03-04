@@ -41,7 +41,7 @@ class ConfigParms:
         
         cfg = cls.config["CONFIG"].get()
         logging.info(cfg)
-        print(cfg)
+        # print(cfg)
 
         cls.cfg_file_path = f"{cls.resolve_app_path(cfg['APP_CONFIG_DIR'])}"
         cls.log_file_path = f"{cls.resolve_app_path(cfg['APP_LOG_DIR'])}"
@@ -74,7 +74,7 @@ class ConfigParms:
         if user := aws_iam_user_name.upper():
             aws_user_cfg = cls.config["AWS_USER_CONFIG"][user].get()
             logging.info(aws_user_cfg)
-            print(aws_user_cfg)
+            # print(aws_user_cfg)
 
             cls.s3_prefix = aws_user_cfg["S3_PREFIX"]
             cls.s3_bucket = aws_user_cfg["S3_BUCKET"]
