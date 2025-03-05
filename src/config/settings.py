@@ -1,22 +1,32 @@
 import confuse
 import logging
+import os
+
 
 class ConfigParms:
-    env = ''
-    app_root_dir = ''
+    env = ""
+    app_root_dir = ""
+    nas_root_dir = ""
     config = confuse.Configuration("dist_app", __name__)
 
     # Define config variables at module scope
-    cfg_file_path = ''
-    log_file_path = ''
-    data_in_file_path = ''
-    data_out_file_path = ''
-    sql_script_file_path = ''
-    img_out_file_path = ''
-    hive_warehouse_path = ''
-    s3_prefix = ''
-    s3_bucket = ''
-    s3_region = ''
+    cfg_file_path = ""
+    log_file_path = ""
+    data_in_file_path = ""
+    data_out_file_path = ""
+    sql_script_file_path = ""
+    img_out_file_path = ""
+    hive_warehouse_path = ""
+    s3_prefix = ""
+    s3_bucket = ""
+    s3_region = ""
+
+    @classmethod
+    def set_env_vars(cls):
+        # Fail if env variable is not set
+        cls.env = os.environ["ENV"]
+        cls.app_root_dir = os.environ["APP_ROOT_DIR"]
+        cls.nas_root_dir = os.environ["NAS_ROOT_DIR"]
 
     @classmethod
     def set_config_file(cls):
@@ -37,8 +47,9 @@ class ConfigParms:
 
     @classmethod
     def load_config(cls):
+        cls.set_env_vars()
         cls.set_config_file()
-        
+
         cfg = cls.config["CONFIG"].get()
         logging.info(cfg)
         # print(cfg)
@@ -64,11 +75,13 @@ class ConfigParms:
             .replace("APP_SQL_SCRIPT_DIR", cfg["APP_SQL_SCRIPT_DIR"])
             .replace("APP_IMG_OUT_DIR", cfg["APP_IMG_OUT_DIR"])
             .replace("APP_ROOT_DIR", cls.app_root_dir)
+            .replace("NAS_ROOT_DIR", cls.nas_root_dir)
         )
         return resolved_app_path
 
     @classmethod
     def load_aws_config(cls, aws_iam_user_name: str):
+        cls.set_env_vars()
         cls.set_config_file()
 
         if user := aws_iam_user_name.upper():
