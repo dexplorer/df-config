@@ -21,7 +21,8 @@ dependencies = [
   # standard py app specific
   "confuse",
   "python-dotenv",
-
+  # my packages
+  "utils",
 ]
 keywords = ["data", "configuration", "etl", "elt", "framework", "config"]
 

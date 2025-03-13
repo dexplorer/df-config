@@ -1,6 +1,7 @@
 import confuse
 import logging
 import os
+from utils import misc as ufm
 
 
 class ConfigParms:
@@ -20,6 +21,10 @@ class ConfigParms:
     s3_prefix = ""
     s3_bucket = ""
     s3_region = ""
+
+    @classmethod
+    def __str__(cls):
+        return ufm.dump_as_str(cls)
 
     @classmethod
     def set_env_vars(cls):
