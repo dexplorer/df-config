@@ -5,19 +5,19 @@ from utils import misc as ufm
 
 
 class ConfigParms:
+    # Config variables from environment
     env = ""
     app_root_dir = ""
     nas_root_dir = ""
-    config = confuse.Configuration("dist_app", __name__)
-
-    # Define config variables at module scope
-    cfg_file_path = ""
-    log_file_path = ""
-    data_in_file_path = ""
-    data_out_file_path = ""
-    sql_script_file_path = ""
-    img_out_file_path = ""
-    hive_warehouse_path = ""
+    # Config variables from config file
+    config = confuse.Configuration("data_framework_app", __name__)
+    app_config_dir = ""
+    app_log_dir = ""
+    app_data_in_dir = ""
+    app_data_out_dir = ""
+    app_sql_script_dir = ""
+    app_img_out_dir = ""
+    hive_warehouse_dir = ""
     s3_prefix = ""
     s3_bucket = ""
     s3_region = ""
@@ -59,13 +59,13 @@ class ConfigParms:
         logging.info(cfg)
         # print(cfg)
 
-        cls.cfg_file_path = f"{cls.resolve_app_path(cfg['APP_CONFIG_DIR'])}"
-        cls.log_file_path = f"{cls.resolve_app_path(cfg['APP_LOG_DIR'])}"
-        cls.data_in_file_path = f"{cls.resolve_app_path(cfg['APP_DATA_IN_DIR'])}"
-        cls.data_out_file_path = f"{cls.resolve_app_path(cfg['APP_DATA_OUT_DIR'])}"
-        cls.sql_script_file_path = f"{cls.resolve_app_path(cfg['APP_SQL_SCRIPT_DIR'])}"
-        cls.img_out_file_path = f"{cls.resolve_app_path(cfg['APP_IMG_OUT_DIR'])}"
-        cls.hive_warehouse_path = f"{cls.resolve_app_path(cfg['HIVE_WAREHOUSE_DIR'])}"
+        cls.app_config_dir = f"{cls.resolve_app_path(cfg['APP_CONFIG_DIR'])}"
+        cls.app_log_dir = f"{cls.resolve_app_path(cfg['APP_LOG_DIR'])}"
+        cls.app_data_in_dir = f"{cls.resolve_app_path(cfg['APP_DATA_IN_DIR'])}"
+        cls.app_data_out_dir = f"{cls.resolve_app_path(cfg['APP_DATA_OUT_DIR'])}"
+        cls.app_sql_script_dir = f"{cls.resolve_app_path(cfg['APP_SQL_SCRIPT_DIR'])}"
+        cls.app_img_out_dir = f"{cls.resolve_app_path(cfg['APP_IMG_OUT_DIR'])}"
+        cls.hive_warehouse_dir = f"{cls.resolve_app_path(cfg['HIVE_WAREHOUSE_DIR'])}"
 
     @classmethod
     def resolve_app_path(cls, rel_path):

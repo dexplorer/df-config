@@ -23,6 +23,8 @@ dependencies = [
   "python-dotenv",
   # my packages
   "utils",
+  # my packages
+  #"utils @ git+https://github.com/dexplorer/utils",
 ]
 keywords = ["data", "configuration", "etl", "elt", "framework", "config"]
 
