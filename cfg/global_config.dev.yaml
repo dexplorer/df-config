@@ -1,0 +1,28 @@
+GLOBAL_CONFIG:
+  APP_CONFIG_DIR: "APP_ROOT_DIR/cfg"
+  APP_SQL_SCRIPT_DIR: "APP_ROOT_DIR/sql"
+  NAS_STORAGE:
+    APP_LOG_DIR: "NAS_LOG_DIR/APP_NAME"
+    APP_DATA_IN_DIR: "NAS_DATA_IN_DIR"
+    APP_DATA_OUT_DIR: "NAS_DATA_OUT_DIR/APP_NAME"
+    APP_IMG_OUT_DIR: "NAS_IMG_OUT_DIR/APP_NAME"
+    HIVE_WAREHOUSE_DIR: "NAS_DATALAKE_DIR/user/hive/warehouse"
+  AWS_S3_STORAGE:
+    APP_LOG_URI: "S3_LOG_BUCKET_URI/APP_NAME"
+    APP_DATA_IN_URI: "S3_DATA_IN_BUCKET_URI"
+    APP_DATA_OUT_URI: "S3_DATA_OUT_BUCKET_URI/APP_NAME"
+    APP_IMG_OUT_URI: "S3_IMG_OUT_BUCKET_URI/APP_NAME"
+    HIVE_WAREHOUSE_URI: "S3_DATALAKE_BUCKET_URI/user/hive/warehouse"
+    AWS_USER_CONFIG:
+      DS_USER_PRODUCT:
+        S3_PREFIX: "ds_user_product" # AWS S3 prefix or folder
+        S3_BUCKET_URI: "df-data-in-dev"  # AWS S3 bucket name
+        S3_REGION: "ap-south-1"  # AWS S3 region
+      DS_USER_DEMOGRAPHIC:
+        S3_PREFIX: "ds_user_demographic"
+        S3_BUCKET_URI: "df-data-in-dev"
+        S3_REGION: "ap-south-1"
+      DS_USER_BOOK_KEEPING:
+        S3_PREFIX: "ds_user_book_keeping"
+        S3_BUCKET_URI: "df-data-in-dev"
+        S3_REGION: "ap-south-1"
