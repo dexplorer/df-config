@@ -5,13 +5,20 @@ import os
 # from pathlib import Path
 from dotenv import load_dotenv, find_dotenv
 from utils import misc as ufm
-from utils.enums import AppEnv, AppHostPattern, AppHostPatternEnvFile, StoragePlatform
+from utils.enums import (
+    AppEnv,
+    AppHostPattern,
+    AppHostPatternEnvFile,
+    StoragePlatform,
+    SparkClusterManager,
+    SparkHostPattern,
+)
 from utils import aws_s3_io as ufa
 import json
 
 
 class ConfigParms:
-    # Config variables from main environment file
+    # Config variables from app host pattern environment file
     app_env = ""
     app_infra_platform = ""
     app_host_pattern = ""
@@ -20,7 +27,7 @@ class ConfigParms:
     data_out_storage_platform = ""
     app_root_dir = ""
     global_cfg_dir = ""
-    # Config variables from host pattern environment file
+    default_env_file = ""
     log_handlers = []
     api_host = ""
     api_port = ""
@@ -41,6 +48,26 @@ class ConfigParms:
     s3_img_out_bucket = ""
     s3_datalake_bucket = ""
     s3_region = ""
+    # Config variables from default environment file
+    spark_host_pattern = ""
+    spark_cluster_manager = ""
+    spark_deploy_mode = ""
+    spark_history_log_dir = ""
+    spark_local_dir = ""
+
+    spark_master_container_host = ""
+    spark_master_container_uri = ""
+    postgres_container_host = ""
+    postgres_container_uri = ""
+    spark_connect_container_host = ""
+    spark_connect_container_uri = ""
+    hive_metastore_container_host = ""
+    hive_metastore_container_uri = ""
+
+    spark_master_uri = ""
+    postgres_uri = ""
+    spark_connect_uri = ""
+    hive_metastore_svc_uri = ""
     # Config variables from global config file
     config = confuse.Configuration("data_framework_app", __name__)
     app_config_dir = ""
@@ -51,17 +78,22 @@ class ConfigParms:
     app_data_out_dir = ""
     app_img_out_dir = ""
     hive_warehouse_dir = ""
+    hive_metastore_dir = ""
+    spark_warehouse_dir = ""
     # Storage platform is AWS S3 storage
     app_log_uri = ""
     app_data_in_uri = ""
     app_data_out_uri = ""
     app_img_out_uri = ""
     hive_warehouse_uri = ""
+    hive_metastore_uri = ""
+    spark_warehouse_uri = ""
     # Storage platform agnostic output paths
     app_log_path = ""
     app_data_out_path = ""
     app_img_out_path = ""
     hive_warehouse_path = ""
+    hive_metastore_path = ""
     # Config variables from app config file
     app_name = ""
     # Misc
@@ -84,19 +116,6 @@ class ConfigParms:
         )
         logging.info("Loading the env file %s", env_file)
         load_dotenv(dotenv_path=env_file)
-        logging.debug(os.environ)
-
-    @staticmethod
-    def load_env_file_alt():
-        # Load the app host pattern environment variables
-        env_file = os.path.join(
-            os.environ["APP_ROOT_DIR"],
-            AppHostPatternEnvFile[
-                AppHostPattern(os.environ["APP_HOST_PATTERN"]).name
-            ].value,
-        )
-        logging.info("Loading the env file %s", env_file)
-        load_dotenv(env_file)
         logging.debug(os.environ)
 
     @classmethod
@@ -125,6 +144,7 @@ class ConfigParms:
 
         cls.app_root_dir = os.environ["APP_ROOT_DIR"]
         cls.global_cfg_dir = os.environ["GLOBAL_CFG_DIR"]
+        cls.default_env_file = os.environ["DEFAULT_ENV_FILE"]
 
         # Host pattern specific env variables
         cls.log_handlers = json.loads(os.environ["LOG_HANDLERS"])
@@ -171,6 +191,52 @@ class ConfigParms:
             cls.s3_region = os.environ["S3_REGION"]
 
     @classmethod
+    def load_default_env_file(cls):
+        # Load the global environment variables
+        env_file = cls.default_env_file
+
+        logging.info("Finding the env file %s", env_file)
+        env_file = find_dotenv(
+            filename=env_file, raise_error_if_not_found=True, usecwd=False
+        )
+        logging.info("Loading the env file %s", env_file)
+        load_dotenv(dotenv_path=env_file)
+
+        logging.debug(os.environ)
+
+    @classmethod
+    def set_default_env_vars(cls):
+        # Default env variables
+        cls.spark_host_pattern = os.environ["SPARK_HOST_PATTERN"]
+        cls.spark_cluster_manager = os.environ["SPARK_CLUSTER_MANAGER"]
+        cls.spark_deploy_mode = os.environ["SPARK_DEPLOY_MODE"]
+        cls.spark_history_log_dir = os.environ["SPARK_HISTORY_LOG_DIR"]
+        cls.spark_local_dir = os.environ["SPARK_LOCAL_DIR"]
+
+        cls.spark_master_container_host = os.environ["SPARK_MASTER_CONTAINER_HOST"]
+        cls.spark_master_port = os.environ["SPARK_MASTER_PORT"]
+        cls.spark_master_container_uri = os.environ["SPARK_MASTER_CONTAINER_URI"]
+        cls.postgres_container_host = os.environ["POSTGRES_CONTAINER_HOST"]
+        cls.postgres_port = os.environ["POSTGRES_PORT"]
+        cls.hive_metastore_db = os.environ["HIVE_METASTORE_DB"]
+        cls.postgres_container_uri = os.environ["POSTGRES_CONTAINER_URI"]
+        cls.hive_metastore_db_user_name = os.environ["HIVE_METASTORE_DB_USER_NAME"]
+        cls.hive_metastore_db_password = os.environ["HIVE_METASTORE_DB_USER_PASSWORD"]
+        cls.spark_connect_container_host = os.environ["SPARK_CONNECT_CONTAINER_HOST"]
+        cls.spark_connect_port = os.environ["SPARK_CONNECT_PORT"]
+        cls.spark_connect_container_uri = os.environ["SPARK_CONNECT_CONTAINER_URI"]
+        cls.hive_metastore_container_host = os.environ["HIVE_METASTORE_CONTAINER_HOST"]
+        cls.hive_metastore_port = os.environ["HIVE_METASTORE_PORT"]
+        cls.hive_metastore_container_uri = os.environ["HIVE_METASTORE_CONTAINER_URI"]
+        cls.spark_version = os.environ["SPARK_VERSION"]
+        cls.scala_version = os.environ["SCALA_VERSION"]
+        cls.postgres_jdbc_version = os.environ["POSTGRES_JDBC_VERSION"]
+        cls.python_version_mm = os.environ["PYTHON_VERSION_MM"]
+        cls.python_version_mmp = os.environ["PYTHON_VERSION_MMP"]
+        cls.spark_home = os.environ["SPARK_HOME"]
+        cls.pyspark_home = os.environ["PYSPARK_HOME"]
+
+    @classmethod
     def set_config_file(cls):
         try:
             if cls.app_env in AppEnv:
@@ -207,7 +273,10 @@ class ConfigParms:
     def load_config(cls, app_host_pattern: str):
         cls.load_env_file(app_host_pattern=app_host_pattern)
         cls.set_env_vars()
+        cls.load_default_env_file()
+        cls.set_default_env_vars()
         cls.set_config_file()
+        cls.set_spark_config()
 
         global_cfg = cls.config["GLOBAL_CONFIG"].get()
         cls.app_config_dir = f"{cls.resolve_app_path(global_cfg['APP_CONFIG_DIR'])}"
@@ -229,12 +298,20 @@ class ConfigParms:
         cls.hive_warehouse_dir = (
             f"{cls.resolve_app_path(global_nas_cfg['HIVE_WAREHOUSE_DIR'])}"
         )
+        cls.hive_metastore_dir = (
+            f"{cls.resolve_app_path(global_nas_cfg['HIVE_METASTORE_DIR'])}"
+        )
+        cls.spark_warehouse_dir = (
+            f"{cls.resolve_app_path(global_nas_cfg['SPARK_WAREHOUSE_DIR'])}"
+        )
         if cls.log_storage_platform == StoragePlatform.NAS_STORAGE:
             cls.app_log_path = cls.app_log_dir
         if cls.data_out_storage_platform == StoragePlatform.NAS_STORAGE:
             cls.app_data_out_path = cls.app_data_out_dir
             cls.app_img_out_path = cls.app_img_out_dir
             cls.hive_warehouse_path = cls.hive_warehouse_dir
+            cls.hive_metastore_path = cls.hive_metastore_dir
+            cls.spark_warehouse_path = cls.spark_warehouse_dir
 
         global_aws_s3_cfg = cls.config["GLOBAL_CONFIG"]["AWS_S3_STORAGE"].get()
         cls.app_log_uri = f"{cls.resolve_app_path(global_aws_s3_cfg['APP_LOG_URI'])}"
@@ -250,12 +327,20 @@ class ConfigParms:
         cls.hive_warehouse_uri = (
             f"{cls.resolve_app_path(global_aws_s3_cfg['HIVE_WAREHOUSE_URI'])}"
         )
+        cls.hive_metastore_uri = (
+            f"{cls.resolve_app_path(global_aws_s3_cfg['HIVE_METASTORE_URI'])}"
+        )
+        cls.spark_warehouse_uri = (
+            f"{cls.resolve_app_path(global_aws_s3_cfg['SPARK_WAREHOUSE_URI'])}"
+        )
         if cls.log_storage_platform == StoragePlatform.AWS_S3_STORAGE:
             cls.app_log_path = cls.app_log_uri
         if cls.data_out_storage_platform == StoragePlatform.AWS_S3_STORAGE:
             cls.app_data_out_path = cls.app_data_out_uri
             cls.app_img_out_path = cls.app_img_out_uri
             cls.hive_warehouse_path = cls.hive_warehouse_uri
+            cls.hive_metastore_path = cls.hive_metastore_uri
+            cls.spark_warehouse_path = cls.spark_warehouse_uri
 
         app_cfg = cls.config["APP_CONFIG"].get()
         cls.app_name = app_cfg["APP_NAME"]
@@ -290,24 +375,57 @@ class ConfigParms:
             .replace("APP_DATA_OUT_DIR", global_nas_cfg["APP_DATA_OUT_DIR"])
             .replace("APP_IMG_OUT_DIR", global_nas_cfg["APP_IMG_OUT_DIR"])
             .replace("HIVE_WAREHOUSE_DIR", global_nas_cfg["HIVE_WAREHOUSE_DIR"])
+            .replace("HIVE_METASTORE_DIR", global_nas_cfg["HIVE_METASTORE_DIR"])
+            .replace("SPARK_WAREHOUSE_DIR", global_nas_cfg["SPARK_WAREHOUSE_DIR"])
             .replace("APP_LOG_URI", global_aws_s3_cfg["APP_LOG_URI"])
             .replace("APP_DATA_IN_URI", global_aws_s3_cfg["APP_DATA_IN_URI"])
             .replace("APP_DATA_OUT_URI", global_aws_s3_cfg["APP_DATA_OUT_URI"])
             .replace("APP_IMG_OUT_URI", global_aws_s3_cfg["APP_IMG_OUT_URI"])
             .replace("HIVE_WAREHOUSE_URI", global_aws_s3_cfg["HIVE_WAREHOUSE_URI"])
+            .replace("HIVE_METASTORE_URI", global_aws_s3_cfg["HIVE_METASTORE_URI"])
+            .replace("SPARK_WAREHOUSE_URI", global_aws_s3_cfg["SPARK_WAREHOUSE_URI"])
             .replace("APP_NAME", app_cfg["APP_NAME"])
             # metadata to cfg map end
             .replace("NAS_LOG_DIR", cls.nas_log_dir)
             .replace("NAS_DATA_IN_DIR", cls.nas_data_in_dir)
             .replace("NAS_DATA_OUT_DIR", cls.nas_data_out_dir)
             .replace("NAS_IMG_OUT_DIR", cls.nas_img_out_dir)
+            .replace("NAS_DATALAKE_DIR", cls.nas_datalake_dir)
             .replace("S3_LOG_BUCKET_URI", cls.s3_log_bucket_uri)
             .replace("S3_DATA_IN_BUCKET_URI", cls.s3_data_in_bucket_uri)
             .replace("S3_DATA_OUT_BUCKET_URI", cls.s3_data_out_bucket_uri)
             .replace("S3_IMG_OUT_BUCKET_URI", cls.s3_img_out_bucket_uri)
+            .replace("S3_DATALAKE_BUCKET_URI", cls.s3_datalake_bucket_uri)
             .replace("APP_ROOT_DIR", cls.app_root_dir)
             .replace("NAS_ROOT_DIR", cls.nas_root_dir)
             .replace("APP_NAME", cls.app_name)
         )
 
         return resolved_app_path
+
+    @classmethod
+    def set_spark_config(cls):
+        # spark local mode
+        cls.spark_master_host = "local[*]"  # run spark locally with as many worker threads as logical cores on your machine
+        cls.metastore_path = cls.hive_metastore_dir
+        if (
+            cls.spark_cluster_manager == SparkClusterManager.STANDALONE
+            and cls.spark_host_pattern == SparkHostPattern.AWS_EC2_CONTAINER
+        ):
+            # internal spark stand-alone resource manager mode
+            cls.spark_master_uri = cls.spark_master_container_uri
+            cls.postgres_uri = cls.postgres_container_uri
+            cls.spark_connect_uri = cls.spark_connect_container_uri
+            cls.hive_metastore_svc_uri = cls.hive_metastore_container_uri
+        elif cls.spark_cluster_manager == SparkClusterManager.STANDALONE:
+            cls.spark_master_host = "spark-master"  # spark master service's host name from docker compose file
+            cls.spark_master_uri = f"spark://{cls.spark_master_host}:7077"
+            cls.postgres_host = "postgres"
+            cls.postgres_uri = f"jdbc:postgresql://{cls.postgres_host}:5432/hive_metastore"
+            cls.spark_connect_host = "spark-connect"
+            cls.spark_connect_uri = f"sc://{cls.spark_connect_host}:15002"
+            cls.hive_metastore_container_host = "hive-metastore"
+            cls.hive_metastore_svc_uri = f"thrift://{cls.hive_metastore_container_host}:9083"
+        elif cls.spark_cluster_manager == SparkClusterManager.YARN:
+            # external cluster/resource manager mode
+            cls.spark_master = "yarn"
