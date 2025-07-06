@@ -21,10 +21,6 @@ dependencies = [
   # standard py app specific
   "confuse",
   "python-dotenv",
-  # my packages
-  #"utils",
-  # my packages
-  #"utils @ git+https://github.com/dexplorer/utils",
 ]
 keywords = ["data", "configuration", "etl", "elt", "framework", "config"]
 
@@ -37,6 +33,10 @@ my-packages-container = [
   # my packages (source in container)
   "utils @ file:///packages/utils",
 ]
+my-packages-git = [
+  # my packages (source in git)
+  "utils @ git+https://github.com/dexplorer/utils",
+]
 test = [
   # standard dev tools
   "pytest",
@@ -44,6 +44,7 @@ test = [
   "pylint",
   "black",
   "ipython",
+  "isort",
 ]
 all-dev = [
   "config[my-packages-local, test]"
@@ -60,3 +61,14 @@ Documentation = "https://readthedocs.org"
 Repository = "https://github.com/dexplorer/df-data-config.git"
 Issues = "https://github.com/dexplorer/df-data-config/issues"
 Changelog = "https://github.com/dexplorer/df-data-config/blob/master/CHANGELOG.md"
+
+[tool.black]
+#line-length = 79
+
+[tool.isort]
+profile = "black"
+#line_length = 79
+known_third_party = ["dotenv", "confuse"]  
+known_first_party = ["utils"]  
+sections = ["FUTURE","STDLIB","THIRDPARTY","FIRSTPARTY","LOCALFOLDER"]
+src_paths = ["src", "config"]  

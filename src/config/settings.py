@@ -1,20 +1,21 @@
-import confuse
+import json
 import logging
 import os
 
+import confuse
+
 # from pathlib import Path
-from dotenv import load_dotenv, find_dotenv
+from dotenv import find_dotenv, load_dotenv
+
+from utils import aws_s3_io as ufa
 from utils import misc as ufm
 from utils.enums import (
     AppEnv,
     AppHostPattern,
-    AppHostPatternEnvFile,
-    StoragePlatform,
     SparkClusterManager,
     SparkHostPattern,
+    StoragePlatform,
 )
-from utils import aws_s3_io as ufa
-import json
 
 
 class ConfigParms:
@@ -27,7 +28,7 @@ class ConfigParms:
     data_out_storage_platform = ""
     app_root_dir = ""
     global_cfg_dir = ""
-    default_env_file = ""
+    global_env_dir = ""
     log_handlers = []
     api_host = ""
     api_port = ""
@@ -105,10 +106,16 @@ class ConfigParms:
     def __str__(cls):
         return ufm.dump_as_str(cls)
 
-    @staticmethod
-    def load_env_file(app_host_pattern: str):
+    @classmethod
+    def set_app_env(cls):
+        # Common env variables
+        cls.app_env = os.environ["APP_ENV"]
+
+    @classmethod
+    def load_env_file(cls, app_host_pattern: str):
         # Load the app host pattern environment variables
-        env_file = AppHostPatternEnvFile[AppHostPattern(app_host_pattern).name].value
+        # env_file = AppHostPatternEnvFile[AppHostPattern(app_host_pattern).name].value
+        env_file = f"app_env.{app_host_pattern}.{cls.app_env}.env"
 
         logging.info("Finding the env file %s", env_file)
         env_file = find_dotenv(
@@ -121,30 +128,49 @@ class ConfigParms:
     @classmethod
     def set_env_vars(cls):
         # Common env variables
-        cls.app_env = os.environ["APP_ENV"]
+        cls.app_root_dir = os.environ["APP_ROOT_DIR"]
+        cls.global_cfg_dir = os.environ["GLOBAL_CFG_DIR"]
+        cls.global_env_dir = os.environ["GLOBAL_ENV_DIR"]
+
+    @classmethod
+    def load_global_env_file(cls, app_host_pattern: str):
+        # Load the global environment variables
+        env_file = os.path.join(
+            cls.global_env_dir, f"global_env.{app_host_pattern}.{cls.app_env}.env"
+        )
+
+        logging.info("Finding the env file %s", env_file)
+        env_file = find_dotenv(
+            filename=env_file, raise_error_if_not_found=True, usecwd=False
+        )
+        logging.info("Loading the env file %s", env_file)
+        load_dotenv(dotenv_path=env_file)
+
+        logging.debug(os.environ)
+
+    @classmethod
+    def set_global_env_vars(cls):
+        # Default env variables
+        # cls.app_env = os.environ["APP_ENV"]
         cls.app_infra_platform = os.environ["APP_INFRA_PLATFORM"]
         cls.app_host_pattern = os.environ["APP_HOST_PATTERN"]
         cls.log_storage_platform = os.environ["LOG_STORAGE_PLATFORM"]
         if cls.log_storage_platform not in StoragePlatform:
             raise RuntimeError(
-                "Log storage platform is invalid. Unable to set required configurations."
+                f"Log storage platform {cls.log_storage_platform} is invalid. Unable to set required configurations."
             )
 
         cls.data_in_storage_platform = os.environ["DATA_IN_STORAGE_PLATFORM"]
         if cls.data_in_storage_platform not in StoragePlatform:
             raise RuntimeError(
-                "Data in storage platform is invalid. Unable to set required configurations."
+                f"Data in storage platform {cls.data_in_storage_platform} is invalid. Unable to set required configurations."
             )
 
         cls.data_out_storage_platform = os.environ["DATA_OUT_STORAGE_PLATFORM"]
         if cls.data_out_storage_platform not in StoragePlatform:
             raise RuntimeError(
-                "Data out storage platform is invalid. Unable to set required configurations."
+                f"Data out storage platform {cls.data_out_storage_platform} is invalid. Unable to set required configurations."
             )
-
-        cls.app_root_dir = os.environ["APP_ROOT_DIR"]
-        cls.global_cfg_dir = os.environ["GLOBAL_CFG_DIR"]
-        cls.default_env_file = os.environ["DEFAULT_ENV_FILE"]
 
         # Host pattern specific env variables
         cls.log_handlers = json.loads(os.environ["LOG_HANDLERS"])
@@ -190,23 +216,6 @@ class ConfigParms:
             )
             cls.s3_region = os.environ["S3_REGION"]
 
-    @classmethod
-    def load_default_env_file(cls):
-        # Load the global environment variables
-        env_file = cls.default_env_file
-
-        logging.info("Finding the env file %s", env_file)
-        env_file = find_dotenv(
-            filename=env_file, raise_error_if_not_found=True, usecwd=False
-        )
-        logging.info("Loading the env file %s", env_file)
-        load_dotenv(dotenv_path=env_file)
-
-        logging.debug(os.environ)
-
-    @classmethod
-    def set_default_env_vars(cls):
-        # Default env variables
         cls.spark_host_pattern = os.environ["SPARK_HOST_PATTERN"]
         cls.spark_cluster_manager = os.environ["SPARK_CLUSTER_MANAGER"]
         cls.spark_deploy_mode = os.environ["SPARK_DEPLOY_MODE"]
@@ -244,7 +253,7 @@ class ConfigParms:
                     cls.global_cfg_dir, f"global_config.{cls.app_env}.yaml"
                 )
                 app_config_file = os.path.join(
-                    cls.app_root_dir, "cfg", f"app_config.{cls.app_env}.yaml"
+                    cls.app_root_dir, f"app_config.{cls.app_env}.yaml"
                 )
             else:
                 raise RuntimeError(
@@ -271,10 +280,13 @@ class ConfigParms:
 
     @classmethod
     def load_config(cls, app_host_pattern: str):
-        cls.load_env_file(app_host_pattern=app_host_pattern)
+        cls.set_app_env()
+        if app_host_pattern != AppHostPattern.AWS_ECS_CONTAINER:
+            cls.load_env_file(app_host_pattern=app_host_pattern)
         cls.set_env_vars()
-        cls.load_default_env_file()
-        cls.set_default_env_vars()
+        if app_host_pattern != AppHostPattern.AWS_ECS_CONTAINER:
+            cls.load_global_env_file(app_host_pattern=app_host_pattern)
+        cls.set_global_env_vars()
         cls.set_config_file()
         cls.set_spark_config()
 
@@ -421,11 +433,22 @@ class ConfigParms:
             cls.spark_master_host = "spark-master"  # spark master service's host name from docker compose file
             cls.spark_master_uri = f"spark://{cls.spark_master_host}:7077"
             cls.postgres_host = "postgres"
-            cls.postgres_uri = f"jdbc:postgresql://{cls.postgres_host}:5432/hive_metastore"
+            cls.postgres_uri = (
+                f"jdbc:postgresql://{cls.postgres_host}:5432/hive_metastore"
+            )
             cls.spark_connect_host = "spark-connect"
             cls.spark_connect_uri = f"sc://{cls.spark_connect_host}:15002"
             cls.hive_metastore_container_host = "hive-metastore"
-            cls.hive_metastore_svc_uri = f"thrift://{cls.hive_metastore_container_host}:9083"
+            cls.hive_metastore_svc_uri = (
+                f"thrift://{cls.hive_metastore_container_host}:9083"
+            )
         elif cls.spark_cluster_manager == SparkClusterManager.YARN:
             # external cluster/resource manager mode
             cls.spark_master = "yarn"
+        elif (
+            cls.spark_cluster_manager == SparkClusterManager.YARN
+            and cls.spark_host_pattern == SparkHostPattern.AWS_EMR_CLUSTER
+        ):
+            # external cluster/resource manager mode
+            cls.spark_master_uri = "yarn-cluster"
+            cls.spark_connect_uri = f"sc://{cls.spark_connect_host}:15002"
